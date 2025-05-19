@@ -42,6 +42,7 @@ export default function ChatWidget() {
       role: 'user',
       content: message,
       timestamp: new Date(),
+      suggestions: [], // Initialize as empty array
     };
     
     addChatMessage(userMessage);
@@ -55,8 +56,14 @@ export default function ChatWidget() {
       );
       
       if (result.success && result.data) {
+        // Make sure suggestions is at least an empty array if it's undefined
+        const assistantMessage: ChatMessage = {
+          ...result.data,
+          suggestions: result.data.suggestions || [],
+          timestamp: new Date(result.data.timestamp || new Date())
+        };
         // Add AI response to chat
-        addChatMessage(result.data);
+        addChatMessage(assistantMessage);
       } else {
         setError(result.error || 'Failed to get a response');
         console.error('Chat error:', result.error);
@@ -163,7 +170,7 @@ export default function ChatWidget() {
                     </span>
                     
                     {/* Suggestions */}
-                    {msg.role === 'assistant' && msg.suggestions && msg.suggestions.length > 0 && (
+                    {msg.role === 'assistant' && msg.suggestions && Array.isArray(msg.suggestions) && msg.suggestions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {msg.suggestions.map((item) => (
                           <button
