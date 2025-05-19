@@ -1,103 +1,144 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useAppStore } from '@/lib/store';
+import { apiClient } from '@/lib/api/client';
+import PhotoUpload from '@/components/avatar/PhotoUpload';
+import AvatarViewer from '@/components/avatar/AvatarViewer';
+import UserProfileForm from '@/components/ui/UserProfileForm';
+import ClothingCatalog from '@/components/catalog/ClothingCatalog';
 
 export default function Home() {
+  const avatar = useAppStore((state) => state.avatar);
+  const setCatalog = useAppStore((state) => state.setCatalog);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch catalog data on page load
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        const result = await apiClient.getCatalog();
+        
+        if (result.success && result.data) {
+          setCatalog(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching catalog:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCatalog();
+  }, [setCatalog]);
+  
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="space-y-8">
+      {/* Hero section */}
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-8 text-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            Virtual Clothing Try-On Experience
+          </h1>
+          <p className="text-lg md:text-xl mb-6">
+            Upload your photo, create a 3D avatar, and try on clothes virtually before you buy.
+          </p>
+          <div className="flex justify-center space-x-4">
+            <a 
+              href="#upload"
+              className="px-6 py-3 bg-white text-blue-600 rounded-md font-medium hover:bg-gray-100 transition-colors"
+            >
+              Get Started
+            </a>
+            <a 
+              href="#catalog"
+              className="px-6 py-3 bg-transparent border border-white text-white rounded-md font-medium hover:bg-white hover:bg-opacity-10 transition-colors"
+            >
+              Browse Catalog
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      {/* Avatar creation section */}
+      <section id="upload" className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Create Your Avatar</h2>
+          <p className="text-gray-600 mb-6">
+            Upload a full-body photo or use your webcam to create a 3D avatar. 
+            Your photo will be processed securely and deleted after avatar creation.
+          </p>
+          <PhotoUpload />
+        </div>
+        
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Your Avatar</h2>
+          <p className="text-gray-600 mb-6">
+            This is your 3D avatar. You can rotate it to view from different angles and try on clothes.
+          </p>
+          <AvatarViewer />
+          
+          <div className="mt-6">
+            <UserProfileForm />
+          </div>
+        </div>
+      </section>
+      
+      {/* Featured catalog section */}
+      <section id="catalog" className="pt-4">
+        <h2 className="text-2xl font-bold mb-4">Featured Items</h2>
+        <p className="text-gray-600 mb-6">
+          Try on these featured items on your avatar. Click "Try On" to see how they look on you.
+        </p>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <ClothingCatalog />
+        )}
+        
+        <div className="mt-8 text-center">
+          <a 
+            href="/catalog"
+            className="px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
+            View Full Catalog
           </a>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+      
+      {/* How it works section */}
+      <section className="bg-gray-100 rounded-lg p-8">
+        <h2 className="text-2xl font-bold mb-6 text-center">How It Works</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">1</div>
+            <h3 className="text-lg font-semibold mb-2">Upload Your Photo</h3>
+            <p className="text-gray-600">
+              Upload a full-body photo or use your webcam to create a 3D avatar of yourself.
+            </p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">2</div>
+            <h3 className="text-lg font-semibold mb-2">Try On Clothes</h3>
+            <p className="text-gray-600">
+              Browse our catalog and try on different clothes to see how they look on your avatar.
+            </p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">3</div>
+            <h3 className="text-lg font-semibold mb-2">Shop with Confidence</h3>
+            <p className="text-gray-600">
+              When you find something you like, purchase it directly from our partner stores.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

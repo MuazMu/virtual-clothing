@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Virtual Clothing Try-On Platform
+
+A Next.js application that enables users to create 3D avatars from photos and try on virtual clothing items.
+
+## Features
+
+- Avatar creation from user photos
+- 3D clothing try-on with Three.js
+- AI fashion advice using OpenRouter API (Gemini 2.5 Pro)
+- Shopping cart with product links
+- Responsive design with Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
+First, clone the repository and install dependencies:
+
+```bash
+git clone <repository-url>
+cd virtual-clothing
+npm install
+```
+
+Create a `.env.local` file with the following variables:
+
+```
+# API URL (leave blank for internal API routes)
+NEXT_PUBLIC_API_URL=
+
+# OpenRouter API Key
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploying to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Option 1: One-Click Deploy
 
-## Learn More
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyourusername%2Fvirtual-clothing)
 
-To learn more about Next.js, take a look at the following resources:
+### Option 2: Manual Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Push your code to GitHub, GitLab, or Bitbucket
+2. Import your project in the [Vercel Dashboard](https://vercel.com/import)
+3. Add the required environment variables:
+   - `OPENROUTER_API_KEY`: Your OpenRouter API key
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Environment Variables
 
-## Deploy on Vercel
+Configure these environment variables in the Vercel dashboard:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Name | Description | Required |
+|------|-------------|----------|
+| `OPENROUTER_API_KEY` | API key for OpenRouter AI service | Yes |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Three.js & React Three Fiber
+- Zustand
+- Tailwind CSS
+- OpenRouter API (Gemini 2.5 Pro)
+
+## License
+
+[MIT](LICENSE)
