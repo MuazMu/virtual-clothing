@@ -65,9 +65,9 @@ export default function ClothingCatalog({
   ];
   
   // Get unique stores from catalog
-  const stores = Array.from(
-    new Set(catalog.map((item) => item.store))
-  ).sort();
+  const stores = Array.isArray(catalog) 
+    ? Array.from(new Set(catalog.map((item) => item.store))).sort()
+    : [];
   
   // Handle filter changes
   const handleTypeFilter = (type: ClothingItem['type'] | undefined) => {
@@ -89,13 +89,13 @@ export default function ClothingCatalog({
   };
   
   // Filter items based on active filters (client-side filtering for initial items)
-  const filteredItems = initialItems
+  const filteredItems = initialItems && Array.isArray(catalog)
     ? catalog.filter((item) => {
         const typeMatch = !activeFilter.type || item.type === activeFilter.type;
         const storeMatch = !activeFilter.store || item.store === activeFilter.store;
         return typeMatch && storeMatch;
       })
-    : catalog;
+    : Array.isArray(catalog) ? catalog : [];
   
   return (
     <div className="w-full">

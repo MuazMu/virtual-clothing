@@ -85,8 +85,10 @@ export default function AvatarViewer() {
   
   const [isLoading, setIsLoading] = useState(true);
   
-  // Convert selected clothing to array for rendering
-  const selectedClothingArray = Object.values(selectedClothing).filter(Boolean) as ClothingItem[];
+  // Convert selected clothing to array for rendering with safety checks
+  const selectedClothingArray = selectedClothing && typeof selectedClothing === 'object'
+    ? Object.values(selectedClothing).filter(Boolean) as ClothingItem[]
+    : [];
   
   // Handle loading state
   useEffect(() => {
@@ -127,7 +129,7 @@ export default function AvatarViewer() {
           />
           
           {/* Clothing models */}
-          {selectedClothingArray.map((item) => (
+          {Array.isArray(selectedClothingArray) && selectedClothingArray.map((item) => (
             <ClothingModel 
               key={item.id} 
               item={item} 

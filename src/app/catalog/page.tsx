@@ -12,10 +12,12 @@ export default function CatalogPage() {
   
   const avatar = useAppStore((state) => state.avatar);
   const setCatalog = useAppStore((state) => state.setCatalog);
-  const selectedClothing = useAppStore((state) => state.selectedClothing);
+  const selectedClothing = useAppStore((state) => state.selectedClothing || {});
   
-  // Check if any clothing is selected
-  const hasSelectedClothing = Object.values(selectedClothing).some(Boolean);
+  // Check if any clothing is selected with safety check
+  const hasSelectedClothing = selectedClothing && typeof selectedClothing === 'object' 
+    ? Object.values(selectedClothing).some(Boolean)
+    : false;
   
   // Fetch catalog data
   useEffect(() => {
@@ -90,7 +92,8 @@ export default function CatalogPage() {
                 <div className="bg-white p-4 rounded-lg shadow-sm">
                   <h3 className="font-medium mb-2">Selected Items</h3>
                   <ul className="space-y-2">
-                    {Object.entries(selectedClothing).map(([type, item]) => 
+                    {selectedClothing && typeof selectedClothing === 'object' && 
+                      Object.entries(selectedClothing).map(([type, item]) => 
                       item && (
                         <li key={item.id} className="flex justify-between items-center">
                           <span className="capitalize">{type}:</span>

@@ -6,16 +6,16 @@ import { useAppStore } from '@/lib/store';
 export default function CartPanel() {
   const [isOpen, setIsOpen] = useState(false);
   
-  const cart = useAppStore((state) => state.cart);
+  const cart = useAppStore((state) => state.cart || []);
   const removeFromCart = useAppStore((state) => state.removeFromCart);
   const updateCartItemQuantity = useAppStore((state) => state.updateCartItemQuantity);
   const clearCart = useAppStore((state) => state.clearCart);
   
-  // Calculate total price
-  const totalPrice = cart.reduce(
+  // Calculate total price with safety check
+  const totalPrice = Array.isArray(cart) ? cart.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
     0
-  );
+  ) : 0;
   
   // Handle quantity change
   const handleQuantityChange = (itemId: string, quantity: number) => {
@@ -78,7 +78,7 @@ export default function CartPanel() {
             
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4">
-              {cart.length === 0 ? (
+              {!Array.isArray(cart) || cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -149,12 +149,12 @@ export default function CartPanel() {
             
             {/* Footer */}
             <div className="p-4 border-t">
-              {cart.length > 0 && (
+              {Array.isArray(cart) && cart.length > 0 && (
                 <>
                   <div className="flex justify-between mb-4">
                     <span className="font-semibold">Total:</span>
                     <span className="font-bold text-lg">
-                      {totalPrice.toFixed(2)} {cart[0].item.currency}
+                      {totalPrice.toFixed(2)} {cart[0]?.item.currency || 'USD'}
                     </span>
                   </div>
                   

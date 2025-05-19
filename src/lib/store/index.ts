@@ -49,21 +49,31 @@ interface AppState {
   clearChatMessages: () => void;
 }
 
+// Default state with properly initialized arrays
+const defaultState = {
+  user: null,
+  avatar: null,
+  catalog: [],
+  selectedClothing: {},
+  cart: [],
+  favorites: [],
+  chatMessages: [],
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
+      // Initialize with default state
+      ...defaultState,
+      
       // User and Avatar
-      user: null,
-      avatar: null,
       setUser: (user) => set({ user }),
       setAvatar: (avatar) => set({ avatar }),
       
       // Clothing items
-      catalog: [],
-      setCatalog: (items) => set({ catalog: items }),
+      setCatalog: (items) => set({ catalog: Array.isArray(items) ? items : [] }),
       
       // Currently selected clothing
-      selectedClothing: {},
       selectClothing: (type, item) => set((state) => ({
         selectedClothing: {
           ...state.selectedClothing,
@@ -73,56 +83,70 @@ export const useAppStore = create<AppState>()(
       clearSelectedClothing: () => set({ selectedClothing: {} }),
       
       // Cart
-      cart: [],
       addToCart: (item, size, color, quantity) => set((state) => {
-        const existingItemIndex = state.cart.findIndex(
+        const cart = Array.isArray(state.cart) ? state.cart : [];
+        const existingItemIndex = cart.findIndex(
           (cartItem) => cartItem.item.id === item.id && 
                         cartItem.selectedSize === size && 
                         cartItem.selectedColor === color
         );
         
         if (existingItemIndex >= 0) {
-          const updatedCart = [...state.cart];
+          const updatedCart = [...cart];
           updatedCart[existingItemIndex].quantity += quantity;
           return { cart: updatedCart };
         } else {
           return { 
-            cart: [...state.cart, { item, selectedSize: size, selectedColor: color, quantity }] 
+            cart: [...cart, { item, selectedSize: size, selectedColor: color, quantity }] 
           };
         }
       }),
       removeFromCart: (itemId) => set((state) => ({
-        cart: state.cart.filter((item) => item.item.id !== itemId)
+        cart: Array.isArray(state.cart) 
+          ? state.cart.filter((item) => item.item.id !== itemId)
+          : []
       })),
       updateCartItemQuantity: (itemId, quantity) => set((state) => ({
-        cart: state.cart.map((item) => 
-          item.item.id === itemId ? { ...item, quantity } : item
-        )
+        cart: Array.isArray(state.cart)
+          ? state.cart.map((item) => 
+              item.item.id === itemId ? { ...item, quantity } : item
+            )
+          : []
       })),
       clearCart: () => set({ cart: [] }),
       
       // Favorites
-      favorites: [],
       addToFavorites: (item) => set((state) => {
-        const existingItem = state.favorites.find(
+        const favorites = Array.isArray(state.favorites) ? state.favorites : [];
+        const existingItem = favorites.find(
           (favItem) => favItem.item.id === item.id
         );
         
         if (!existingItem) {
           return { 
-            favorites: [...state.favorites, { item, addedAt: new Date() }] 
+            favorites: [...favorites, { item, addedAt: new Date() }] 
           };
         }
-        return { favorites: state.favorites };
+        return { favorites };
       }),
       removeFromFavorites: (itemId) => set((state) => ({
-        favorites: state.favorites.filter((item) => item.item.id !== itemId)
+        favorites: Array.isArray(state.favorites) 
+          ? state.favorites.filter((item) => item.item.id !== itemId)
+          : []
       })),
       
       // Chat
       chatMessages: [],
       addChatMessage: (message) => set((state) => ({
-        chatMessages: [...state.chatMessages, message]
+        chatMessages: Array.isArray(state.chatMessages) 
+          ? [...state.chatMessages, { 
+              ...message, 
+              suggestions: Array.isArray(message.suggestions) ? message.suggestions : [] 
+            }]
+          : [{ 
+              ...message, 
+              suggestions: Array.isArray(message.suggestions) ? message.suggestions : [] 
+            }]
       })),
       clearChatMessages: () => set({ chatMessages: [] }),
     }),
