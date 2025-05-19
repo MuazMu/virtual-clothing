@@ -11,7 +11,17 @@ import { AvatarModel, ClothingItem } from '@/lib/types';
 
 // Model component for the avatar
 function AvatarModel({ url, height, waist }: { url: string; height?: number; waist?: number }) {
-  const gltf = useLoader(GLTFLoader, url);
+  const [modelError, setModelError] = useState(false);
+  const gltfResult = useLoader(
+    GLTFLoader, 
+    url,
+    undefined,
+    (error) => {
+      console.error('Error loading model:', error);
+      setModelError(true);
+    }
+  );
+  
   const modelRef = useRef<THREE.Group>(null);
   
   useEffect(() => {
@@ -21,10 +31,19 @@ function AvatarModel({ url, height, waist }: { url: string; height?: number; wai
     }
   }, [modelRef, height, waist]);
   
+  if (modelError) {
+    return (
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1, 2, 0.5]} />
+        <meshStandardMaterial color="#ff0000" />
+      </mesh>
+    );
+  }
+  
   return (
     <primitive 
       ref={modelRef}
-      object={gltf.scene} 
+      object={gltfResult.scene} 
       position={[0, -1, 0]} 
       rotation={[0, 0, 0]} 
       scale={1} 

@@ -19,10 +19,16 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      
+      // Default headers (only apply for JSON requests)
+      const defaultHeaders = options.body instanceof FormData 
+        ? {} // Let the browser set correct Content-Type with boundary for FormData
+        : { 'Content-Type': 'application/json' };
+      
       const response = await fetch(url, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           ...options.headers,
         },
       });
@@ -58,17 +64,23 @@ class ApiClient {
     
     if (typeof photo === 'string') {
       // If photo is a base64 string, convert it to a blob
-      const response = await fetch(photo);
-      const blob = await response.blob();
-      formData.append('photo', blob, 'user-photo.jpg');
+      try {
+        const response = await fetch(photo);
+        const blob = await response.blob();
+        formData.append('photo', blob, 'user-photo.jpg');
+      } catch (error) {
+        console.error('Error converting base64 to blob:', error);
+        // Fallback to a simple blob
+        formData.append('photo', new Blob(['photo_data'], { type: 'text/plain' }), 'user-photo.txt');
+      }
     } else {
-      formData.append('photo', photo);
+      formData.append('photo', photo, 'user-photo.jpg');
     }
 
     return this.request<AvatarModel>('/api/avatar', {
       method: 'POST',
       body: formData,
-      headers: {}, // Remove Content-Type header to let browser set it with boundary
+      // Let browser set the Content-Type header with boundary automatically
     });
   }
 

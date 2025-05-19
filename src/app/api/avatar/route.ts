@@ -3,58 +3,56 @@ import { v4 as uuidv4 } from 'uuid';
 import { AvatarModel } from '@/lib/types';
 
 // In a real application, this would be stored in a database
-// For simplicity, we're using an in-memory store
+// For simplicity, we're using an in-memory store with demo models
 const avatarJobs: Record<string, AvatarModel> = {};
+
+// Demo GLB avatar models (replace with your own public models if needed)
+const demoAvatarModels = [
+  'https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/casual-female-outfit-1/casual-female-outfit-1.glb',
+  'https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/casual-male-outfit-1/casual-male-outfit-1.glb',
+  'https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/female-sport-outfit/female-sport-outfit.glb'
+];
+
+// Maximum request body size for Vercel serverless functions
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
+  },
+};
 
 /**
  * POST handler for avatar generation
- * Accepts a user photo and initiates the 3D avatar generation process
+ * Accepts a user photo and simulates the 3D avatar generation process
  */
 export async function POST(request: NextRequest) {
   try {
-    // In a production environment, we would:
-    // 1. Use formidable or similar to parse the multipart form data
-    // 2. Save the image temporarily
-    // 3. Send it to a 3D avatar generation service (e.g., PIFuHD)
-    // 4. Return a job ID for status polling
-    
-    // For this demo, we'll simulate the process
-    const formData = await request.formData();
-    const photo = formData.get('photo');
-    
-    if (!photo || !(photo instanceof Blob)) {
-      return NextResponse.json(
-        { error: 'No photo provided or invalid format' },
-        { status: 400 }
-      );
-    }
+    // In production we'd actually process the image
+    // For this demo, we'll just return a pre-made avatar model
     
     // Generate a unique ID for this job
     const jobId = uuidv4();
     
-    // Store job in our in-memory database
-    avatarJobs[jobId] = {
+    // Select a random demo model
+    const randomModelUrl = demoAvatarModels[Math.floor(Math.random() * demoAvatarModels.length)];
+    
+    // Store job in our in-memory database with immediate result
+    const avatarModel: AvatarModel = {
       id: jobId,
-      url: '', // Will be populated when processing completes
+      url: randomModelUrl,
       format: 'glb',
       createdAt: new Date(),
     };
     
-    // In a real application, we would start the avatar generation process here
-    // For demo purposes, we'll simulate it with a timeout
-    simulateAvatarGeneration(jobId);
+    avatarJobs[jobId] = avatarModel;
     
     return NextResponse.json(
       { 
         success: true, 
-        data: { 
-          id: jobId,
-          url: '',
-          format: 'glb',
-          createdAt: new Date()
-        } 
+        data: avatarModel
       },
-      { status: 202 }
+      { status: 200 }
     );
   } catch (error) {
     console.error('Error processing avatar request:', error);
@@ -63,26 +61,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Simulates the avatar generation process
- * In a real application, this would be a call to a 3D avatar generation service
- */
-function simulateAvatarGeneration(jobId: string) {
-  // Simulate processing time (15-30 seconds)
-  const processingTime = 15000 + Math.random() * 15000;
-  
-  setTimeout(() => {
-    // Update the job with a mock URL to a 3D model
-    if (avatarJobs[jobId]) {
-      avatarJobs[jobId].url = `https://example.com/avatars/${jobId}.glb`;
-      
-      // In a real application, we would:
-      // 1. Delete the temporary image file
-      // 2. Store the result in a database or cloud storage
-    }
-  }, processingTime);
 }
 
 /**

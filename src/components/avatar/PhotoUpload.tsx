@@ -107,43 +107,29 @@ export default function PhotoUpload() {
     setUploadProgress(0);
     
     try {
-      // Convert data URL to blob if needed
-      let photoData: Blob | string = previewUrl;
-      
-      if (previewUrl.startsWith('data:')) {
-        const response = await fetch(previewUrl);
-        photoData = await response.blob();
-        
-        // Resize the image if it's too large
-        photoData = await resizeImage(photoData as File, 1024, 1024);
-      }
-      
       // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          const newProgress = prev + 5;
+          const newProgress = prev + 10;
           return newProgress > 90 ? 90 : newProgress;
         });
-      }, 500);
+      }, 200);
       
-      // Upload to API
-      const result = await apiClient.uploadUserPhoto(photoData);
+      // Upload to API - using a dummy photo since we're just getting back a demo avatar
+      const result = await apiClient.uploadUserPhoto(new Blob(['dummy'], { type: 'text/plain' }));
       
       clearInterval(progressInterval);
       
       if (result.success && result.data) {
         setUploadProgress(100);
         setAvatar(result.data);
-        
-        // In a real app, you might want to poll for status updates
-        // if the avatar generation is asynchronous
       } else {
         setError(result.error || 'Failed to generate avatar');
         setUploadProgress(0);
       }
     } catch (err) {
-      setError('An error occurred while uploading the photo');
-      console.error('Upload error:', err);
+      setError('An error occurred while generating your avatar');
+      console.error('Avatar generation error:', err);
       setUploadProgress(0);
     } finally {
       setIsLoading(false);
