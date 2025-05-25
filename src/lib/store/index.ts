@@ -8,6 +8,7 @@ import {
   FavoriteItem,
   ChatMessage
 } from '../types';
+import * as poseDetection from '@tensorflow-models/pose-detection';
 
 interface AppState {
   // User and Avatar
@@ -15,6 +16,16 @@ interface AppState {
   avatar: AvatarModel | null;
   setUser: (user: User | null) => void;
   setAvatar: (avatar: AvatarModel | null) => void;
+  
+  // Add state for 3D pose keypoints
+  pose3DKeypoints: poseDetection.Keypoint[] | null;
+  setPose3DKeypoints: (keypoints: poseDetection.Keypoint[] | null) => void;
+  
+  // Add state for skin and hair color
+  skinColor: { r: number; g: number; b: number } | null;
+  setSkinColor: (color: { r: number; g: number; b: number } | null) => void;
+  hairColor: { r: number; g: number; b: number } | null;
+  setHairColor: (color: { r: number; g: number; b: number } | null) => void;
   
   // Clothing items
   catalog: ClothingItem[];
@@ -47,6 +58,10 @@ interface AppState {
   chatMessages: ChatMessage[];
   addChatMessage: (message: ChatMessage) => void;
   clearChatMessages: () => void;
+  
+  // Reconstructed face
+  reconstructedFace: { meshUrl: string; textureUrl: string } | null;
+  setReconstructedFace: (data: { meshUrl: string; textureUrl: string } | null) => void;
 }
 
 // Default state with properly initialized arrays
@@ -58,6 +73,12 @@ const defaultState = {
   cart: [],
   favorites: [],
   chatMessages: [],
+  // Initialize pose3DKeypoints
+  pose3DKeypoints: null,
+  // Add default skin and hair color
+  skinColor: null,
+  hairColor: null,
+  reconstructedFace: null,
 };
 
 export const useAppStore = create<AppState>()(
@@ -69,6 +90,13 @@ export const useAppStore = create<AppState>()(
       // User and Avatar
       setUser: (user) => set({ user }),
       setAvatar: (avatar) => set({ avatar }),
+      
+      // Set 3D pose keypoints
+      setPose3DKeypoints: (keypoints) => set({ pose3DKeypoints: keypoints }),
+      
+      // Set skin and hair color
+      setSkinColor: (color) => set({ skinColor: color }),
+      setHairColor: (color) => set({ hairColor: color }),
       
       // Clothing items
       setCatalog: (items) => set({ catalog: Array.isArray(items) ? items : [] }),
@@ -149,6 +177,9 @@ export const useAppStore = create<AppState>()(
             }]
       })),
       clearChatMessages: () => set({ chatMessages: [] }),
+      
+      // Reconstructed face
+      setReconstructedFace: (data) => set({ reconstructedFace: data }),
     }),
     {
       name: 'virtual-clothing-store',

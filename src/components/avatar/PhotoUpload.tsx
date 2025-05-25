@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { validateImage, fileToBase64, resizeImage } from '@/lib/utils/image-utils';
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import * as poseDetection from '@tensorflow-models/pose-detection';
+import { validateImage, fileToBase64, resizeImage, extractAverageColorFromMask } from '@/lib/utils/image-utils';
 import { apiClient } from '@/lib/api/client';
 import { useAppStore } from '@/lib/store';
 
@@ -17,6 +20,10 @@ export default function PhotoUpload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const setAvatar = useAppStore((state) => state.setAvatar);
+  const setPose3DKeypoints = useAppStore((state) => state.setPose3DKeypoints);
+  const setSkinColor = useAppStore((state) => state.setSkinColor);
+  const setHairColor = useAppStore((state) => state.setHairColor);
+  const setReconstructedFace = useAppStore((state) => state.setReconstructedFace);
   
   // Start webcam capture
   const startCapture = async () => {
@@ -107,29 +114,48 @@ export default function PhotoUpload() {
     setUploadProgress(0);
     
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          const newProgress = prev + 10;
-          return newProgress > 90 ? 90 : newProgress;
-        });
-      }, 200);
+      // Initialize TF.js backend
+      await tf.setBackend('webgl');
+
+      // Create an image element from the preview URL
+      const img = new Image();
+      img.src = previewUrl;
+      await new Promise((resolve) => img.onload = resolve);
       
-      // Upload to API - using a dummy photo since we're just getting back a demo avatar
-      const result = await apiClient.uploadUserPhoto(new Blob(['dummy'], { type: 'text/plain' }));
-      
-      clearInterval(progressInterval);
-      
-      if (result.success && result.data) {
-        setUploadProgress(100);
-        setAvatar(result.data);
+      // Load the BlazePose detector
+      const detectorConfig: poseDetection.BlazePoseMediaPipeModelConfig = {
+        runtime: 'mediapipe',
+        modelType: 'full',
+        enableSegmentation: true, // Enable segmentation mask
+      };
+      const detector = await poseDetection.createDetector(
+        poseDetection.SupportedModels.BlazePose,
+        detectorConfig
+      );
+      const poses = await detector.estimatePoses(img);
+
+      if (poses && poses.length > 0) {
+        setPose3DKeypoints(poses[0].keypoints3D || null);
+
+        // Extract segmentation mask (property is 'segmentation' in BlazePose output)
+        const segmentation = poses[0].segmentation;
+        if (segmentation && segmentation.mask && typeof segmentation.mask.toImageData === 'function') {
+          const maskImageData = await segmentation.mask.toImageData();
+          // For BlazePose, 255 in the red channel means foreground (person)
+          const skinColor = extractAverageColorFromMask(img, maskImageData, 255);
+          setSkinColor(skinColor);
+          // Hair color extraction would require a different model or approach
+        }
       } else {
-        setError(result.error || 'Failed to generate avatar');
-        setUploadProgress(0);
+        setError('No pose detected in the image.');
       }
+
+      // Dispose the detector to free up resources
+      detector.dispose();
+
     } catch (err) {
-      setError('An error occurred while generating your avatar');
-      console.error('Avatar generation error:', err);
+      setError('An error occurred during pose estimation.');
+      console.error('Pose estimation error:', err);
       setUploadProgress(0);
     } finally {
       setIsLoading(false);
@@ -144,6 +170,18 @@ export default function PhotoUpload() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+  
+  const handleFaceReconstruction = async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch('http://localhost:8000/api/face-reconstruction', {
+      method: 'POST',
+      body: formData,
+    });
+    const { meshUrl, textureUrl } = await response.json();
+    // Save these URLs in your store for use in AvatarViewer
+    setReconstructedFace({ meshUrl, textureUrl });
   };
   
   return (

@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
       system: `You are a helpful fashion advisor. Provide styling advice and suggest specific items from our catalog.
       When suggesting items, include them in a 'suggestions' array in your JSON response.
       Each suggestion should include the item's id, name, and type.
-      Base your suggestions on these available items: ${JSON.stringify(sampleClothingItems)}`,
+      Base your suggestions on these available items: ${JSON.stringify(sampleClothingItems)}
+      Always suggest a full outfit (top, bottom, shoes, and optionally hijab or accessory) if possible.`,
     });
     
     // Parse the AI response

@@ -105,4 +105,58 @@ export const resizeImage = (
       reject(new Error('Error loading image'));
     };
   });
-}; 
+};
+
+/**
+ * Extracts the average color from a region of an image using a segmentation mask.
+ * @param image HTMLImageElement or HTMLCanvasElement
+ * @param mask Uint8ClampedArray or ImageData (same size as image)
+ * @param regionValue The value in the mask corresponding to the region (e.g., face or hair)
+ * @returns { r: number, g: number, b: number } Average color
+ */
+export function extractAverageColorFromMask(
+  image: HTMLImageElement | HTMLCanvasElement,
+  mask: Uint8ClampedArray | ImageData,
+  regionValue: number
+): { r: number; g: number; b: number } | null {
+  // Draw image to canvas if needed
+  let canvas: HTMLCanvasElement;
+  if (image instanceof HTMLCanvasElement) {
+    canvas = image;
+  } else {
+    canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(image, 0, 0);
+  }
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imgData.data;
+
+  // Get mask data
+  let maskData: Uint8ClampedArray;
+  if (mask instanceof ImageData) {
+    maskData = mask.data;
+  } else {
+    maskData = mask;
+  }
+
+  let r = 0, g = 0, b = 0, count = 0;
+  for (let i = 0; i < maskData.length; i++) {
+    if (maskData[i] === regionValue) {
+      r += data[i * 4];
+      g += data[i * 4 + 1];
+      b += data[i * 4 + 2];
+      count++;
+    }
+  }
+  if (count === 0) return null;
+  return {
+    r: Math.round(r / count),
+    g: Math.round(g / count),
+    b: Math.round(b / count),
+  };
+} 

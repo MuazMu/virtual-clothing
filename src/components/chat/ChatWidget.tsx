@@ -56,14 +56,19 @@ export default function ChatWidget() {
       );
       
       if (result.success && result.data) {
-        // Make sure suggestions is at least an empty array if it's undefined
         const assistantMessage: ChatMessage = {
           ...result.data,
           suggestions: result.data.suggestions || [],
           timestamp: new Date(result.data.timestamp || new Date())
         };
-        // Add AI response to chat
         addChatMessage(assistantMessage);
+
+        // Automatically try on all suggestions (if any)
+        if (assistantMessage.suggestions && assistantMessage.suggestions.length > 0) {
+          assistantMessage.suggestions.forEach(item => {
+            selectClothing(item.type, item);
+          });
+        }
       } else {
         setError(result.error || 'Failed to get a response');
         console.error('Chat error:', result.error);
