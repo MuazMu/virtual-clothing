@@ -175,7 +175,7 @@ export default function PhotoUpload() {
   const handleFaceReconstruction = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await fetch('http://localhost:8000/api/face-reconstruction', {
+    const response = await fetch('https://huggingface.co/spaces/Muazmu/Deca-3d', {
       method: 'POST',
       body: formData,
     });
